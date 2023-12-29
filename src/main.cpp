@@ -8,5 +8,16 @@ int APIENTRY WinMain([[maybe_unused]] HINSTANCE instance,
                      [[maybe_unused]] PSTR cmd_line,
                      [[maybe_unused]] int show_cmd) {
     mage::win32_window window(instance, show_cmd);
-    return MessageBox(nullptr, TEXT(MAGE_VERSION), TEXT("Mage3D"), 0);
+
+    MSG msg;
+    BOOL ret;
+    while ((ret = GetMessage(&msg, nullptr, 0, 0)) != 0) {
+        if (ret == -1) {
+            return ret;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    return ret;
 }
