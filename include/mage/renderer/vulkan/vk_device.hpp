@@ -11,7 +11,7 @@ namespace mage {
         VkDevice device_;
 
     public:
-        explicit vk_device(const vk_physical_device& device);
+        explicit vk_device(const vk_physical_device& device, const vk_queue_family_indices& indices);
 
         vk_device(const vk_device& other) noexcept = delete;
 

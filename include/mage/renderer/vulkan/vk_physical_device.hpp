@@ -8,9 +8,12 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
+#include <mage/renderer/vulkan/vk_surface.hpp>
+
 namespace mage {
     struct vk_queue_family_indices final {
         std::optional<uint32_t> graphics_family;
+        std::optional<uint32_t> present_family;
     };
 
     class vk_physical_device final {
@@ -47,6 +50,6 @@ namespace mage {
         std::vector<VkQueueFamilyProperties> get_queue_family_properties() const noexcept;
 
         [[nodiscard]]
-        vk_queue_family_indices get_queue_families() const noexcept;
+        vk_queue_family_indices get_queue_families(const vk_surface& surface) const noexcept;
     };
 }

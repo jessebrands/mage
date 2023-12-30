@@ -26,7 +26,7 @@ std::vector<VkQueueFamilyProperties> mage::vk_physical_device::get_queue_family_
     return queue_family_properties;
 }
 
-mage::vk_queue_family_indices mage::vk_physical_device::get_queue_families() const noexcept {
+mage::vk_queue_family_indices mage::vk_physical_device::get_queue_families(const vk_surface& surface) const noexcept {
     vk_queue_family_indices indices;
     const auto family_properties = get_queue_family_properties();
 
@@ -34,6 +34,12 @@ mage::vk_queue_family_indices mage::vk_physical_device::get_queue_families() con
     for (const auto& props : family_properties) {
         if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.graphics_family = index;
+        }
+        VkBool32 present_supported = VK_FALSE;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device_, index, surface.get(), &present_supported);
+
+        if (present_supported) {
+            indices.present_family = index;
         }
 
         ++index;

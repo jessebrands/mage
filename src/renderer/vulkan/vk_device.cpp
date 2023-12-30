@@ -4,21 +4,29 @@
 
 #pragma once
 
+#include <set>
 #include <stdexcept>
 #include <mage/renderer/vulkan/vk_device.hpp>
 
-mage::vk_device::vk_device(const vk_physical_device& physical_device) : device_(VK_NULL_HANDLE) {
-    const auto indices = physical_device.get_queue_families();
+mage::vk_device::vk_device(const vk_physical_device& physical_device,
+                           const vk_queue_family_indices& indices) : device_(VK_NULL_HANDLE) {
     float queue_priorities = 1.0f;
-
-    VkDeviceQueueCreateInfo queue_create_info = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .queueFamilyIndex = indices.graphics_family.value(),
-        .queueCount = 1,
-        .pQueuePriorities = &queue_priorities,
+    std::vector<VkDeviceQueueCreateInfo> queue_infos;
+    const std::set unique_families = {
+        indices.graphics_family.value(),
+        indices.present_family.value()
     };
+
+    for (const auto& family: unique_families) {
+        queue_infos.push_back({
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .queueFamilyIndex = family,
+            .queueCount = 1,
+            .pQueuePriorities = &queue_priorities,
+        });
+    }
 
     // Select what device features we are interested in using.
     VkPhysicalDeviceFeatures device_features = {};
@@ -32,13 +40,10 @@ mage::vk_device::vk_device(const vk_physical_device& physical_device) : device_(
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .queueCreateInfoCount = 1,
-        .pQueueCreateInfos = &queue_create_info,
-
-        // Device layers are ignored by modern Vulkan specifications.
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = nullptr,
-
+        .queueCreateInfoCount = static_cast<uint32_t>(queue_infos.size()),
+        .pQueueCreateInfos = queue_infos.data(),
+        .enabledLayerCount = 0, // ignored by modern implementations
+        .ppEnabledLayerNames = nullptr, // ignored by modern implementations
         .enabledExtensionCount = static_cast<uint32_t>(enabled_extensions.size()),
         .ppEnabledExtensionNames = enabled_extensions.data(),
         .pEnabledFeatures = &device_features
