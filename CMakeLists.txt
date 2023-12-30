@@ -29,11 +29,15 @@ set(MAGE_PLATFORM_SOURCES
 
 set(MAGE_RENDERER_HEADERS
         include/mage/renderer/vulkan/vk_instance.hpp
-        include/mage/renderer/vulkan/vk_physical_device.hpp)
+        include/mage/renderer/vulkan/vk_physical_device.hpp
+        include/mage/renderer/vulkan/vk_device.hpp
+        include/mage/renderer/render_system.hpp
+)
 
 set(MAGE_RENDERER_SOURCES
         src/renderer/vulkan/vk_instance.cpp
-        src/renderer/vulkan/vk_physical_device.cpp)
+        src/renderer/vulkan/vk_physical_device.cpp
+        src/renderer/vulkan/vk_device.cpp)
 
 add_executable(mage
         ${MAGE_SOURCES}

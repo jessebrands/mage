@@ -25,3 +25,19 @@ std::vector<VkQueueFamilyProperties> mage::vk_physical_device::get_queue_family_
 
     return queue_family_properties;
 }
+
+mage::vk_queue_family_indices mage::vk_physical_device::get_queue_families() const noexcept {
+    vk_queue_family_indices indices;
+    const auto family_properties = get_queue_family_properties();
+
+    int index = 0;
+    for (const auto& props : family_properties) {
+        if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphics_family = index;
+        }
+
+        ++index;
+    }
+
+    return indices;
+}
