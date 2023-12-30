@@ -21,15 +21,26 @@ set(MAGE_SOURCES
 ### Platform abstraction source lists.
 set(MAGE_PLATFORM_HEADERS
         include/mage/platform/win32/win32_window_class.hpp
-        include/mage/platform/win32/win32_window.hpp)
+        include/mage/platform/win32/win32_window.hpp
+)
 
 set(MAGE_PLATFORM_SOURCES
         src/platform/win32/win32_window.cpp)
 
+set(MAGE_RENDERER_HEADERS
+        include/mage/renderer/vulkan/vk_instance.hpp
+        include/mage/renderer/vulkan/vk_physical_device.hpp)
+
+set(MAGE_RENDERER_SOURCES
+        src/renderer/vulkan/vk_instance.cpp
+        src/renderer/vulkan/vk_physical_device.cpp)
+
 add_executable(mage
         ${MAGE_SOURCES}
         ${MAGE_PLATFORM_HEADERS}
-        ${MAGE_PLATFORM_SOURCES})
+        ${MAGE_PLATFORM_SOURCES}
+        ${MAGE_RENDERER_HEADERS}
+        ${MAGE_RENDERER_SOURCES})
 
 ###
 ### We want the most up-to-date standard and no extensions.
@@ -48,12 +59,15 @@ target_include_directories(mage
 target_compile_definitions(mage
         PUBLIC WIN32_LEAN_AND_MEAN=1
         PUBLIC UNICODE=1
+        PUBLIC VK_USE_PLATFORM_WIN32_KHR=1
         PRIVATE MAGE_VERSION="${PROJECT_VERSION}"
         PRIVATE MAGE_PLATFORM="Win32")
 
 ###
-### DirectX 11 libraries
-target_link_libraries(mage)
+### Set up libraries
+find_package(Vulkan REQUIRED)
+target_link_libraries(mage
+        PRIVATE Vulkan::Vulkan)
 
 ###
 ### Compiler specific settings.
