@@ -21,7 +21,8 @@ set(MAGE_SOURCES
 ### Platform abstraction source lists.
 set(MAGE_PLATFORM_HEADERS
         include/mage/platform/win32_window_class.hpp
-        include/mage/platform/win32_window.hpp)
+        include/mage/platform/win32_window.hpp
+        include/mage/platform/com_ptr.hpp)
 
 set(MAGE_PLATFORM_SOURCES
         src/platform/win32_window.cpp)
@@ -62,7 +63,7 @@ target_compile_definitions(mage
 ### Set up libraries
 find_package(Vulkan REQUIRED)
 target_link_libraries(mage
-        PRIVATE Vulkan::Vulkan)
+        PRIVATE dxgi.lib)
 
 ###
 ### Compiler specific settings.
