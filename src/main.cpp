@@ -1,7 +1,7 @@
 #include <iostream>
 #include <windows.h>
 
-#include <mage/platform/win32/win32_window.hpp>
+#include <mage/platform/win32_window.hpp>
 
 int APIENTRY WinMain([[maybe_unused]] HINSTANCE hinstance,
                      [[maybe_unused]] HINSTANCE prev_instance,

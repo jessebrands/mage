@@ -2,7 +2,7 @@
 // Created by Jesse on 12/28/2023.
 //
 
-#include <mage/platform/win32/win32_window.hpp>
+#include <mage/platform/win32_window.hpp>
 
 LRESULT mage::win32_window::window_proc(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
     if (msg == WM_NCCREATE) {

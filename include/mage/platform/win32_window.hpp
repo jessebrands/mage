@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <mage/platform/win32/win32_window_class.hpp>
+#include <mage/platform/win32_window_class.hpp>
 
 namespace mage {
     /*!

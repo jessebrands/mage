@@ -20,11 +20,13 @@ set(MAGE_SOURCES
 ###
 ### Platform abstraction source lists.
 set(MAGE_PLATFORM_HEADERS
-        include/mage/platform/win32/win32_window_class.hpp
-        include/mage/platform/win32/win32_window.hpp)
+        include/mage/platform/win32_window_class.hpp
+        include/mage/platform/win32_window.hpp)
 
 set(MAGE_PLATFORM_SOURCES
-        src/platform/win32/win32_window.cpp)
+        src/platform/win32_window.cpp)
+
+set(MAGE_RENDERER_HEADERS)
 
 set(MAGE_RENDERER_SOURCES)
 
