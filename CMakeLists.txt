@@ -21,26 +21,12 @@ set(MAGE_SOURCES
 ### Platform abstraction source lists.
 set(MAGE_PLATFORM_HEADERS
         include/mage/platform/win32/win32_window_class.hpp
-        include/mage/platform/win32/win32_window.hpp
-        include/mage/platform/win32/vk_win32_surface.hpp
-)
+        include/mage/platform/win32/win32_window.hpp)
 
 set(MAGE_PLATFORM_SOURCES
-        src/platform/win32/win32_window.cpp
-        src/platform/win32/vk_win32_surface.cpp)
+        src/platform/win32/win32_window.cpp)
 
-set(MAGE_RENDERER_HEADERS
-        include/mage/renderer/vulkan/vk_instance.hpp
-        include/mage/renderer/vulkan/vk_physical_device.hpp
-        include/mage/renderer/vulkan/vk_device.hpp
-        include/mage/renderer/render_system.hpp
-        include/mage/renderer/vulkan/vk_surface.hpp
-)
-
-set(MAGE_RENDERER_SOURCES
-        src/renderer/vulkan/vk_instance.cpp
-        src/renderer/vulkan/vk_physical_device.cpp
-        src/renderer/vulkan/vk_device.cpp)
+set(MAGE_RENDERER_SOURCES)
 
 add_executable(mage
         ${MAGE_SOURCES}
@@ -66,7 +52,6 @@ target_include_directories(mage
 target_compile_definitions(mage
         PUBLIC WIN32_LEAN_AND_MEAN=1
         PUBLIC UNICODE=1
-        PUBLIC VK_USE_PLATFORM_WIN32_KHR=1
         PRIVATE MAGE_VERSION="${PROJECT_VERSION}"
         PRIVATE MAGE_PLATFORM_WIN32=1
         PRIVATE MAGE_PLATFORM="Win32")
