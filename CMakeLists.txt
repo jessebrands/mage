@@ -63,7 +63,7 @@ target_compile_definitions(mage
 ### Set up libraries
 find_package(Vulkan REQUIRED)
 target_link_libraries(mage
-        PRIVATE dxgi.lib)
+        PRIVATE dxgi.lib d3d11.lib)
 
 ###
 ### Compiler specific settings.

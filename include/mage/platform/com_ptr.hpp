@@ -4,61 +4,67 @@
 
 #pragma once
 
-#include <cassert>
 #include <type_traits>
-#include <format>
-
 #include <unknwn.h>
 
 namespace mage {
+    /*!
+     * <code>mage::com_ptr</code> is a smart pointer that owns and manages a COM object through a pointer. It assists
+     * in reference counting and releasing the object when it goes out of scope.
+     *
+     * A <code>com_ptr</code> may alternatively own no object, in which case it is called empty.
+     *
+     * \brief Smart COM pointer.
+     * \tparam T COM object interface that derives from IUnknown.
+     */
     template<typename T> requires std::is_base_of_v<IUnknown, T>
     class com_ptr final {
-        using type_t = T;
+        // Required to access ptr_ of other specializations.
+        template<typename U> requires std::is_base_of_v<IUnknown, U>
+        friend class com_ptr;
 
-        type_t* ptr_;
+        T* ptr_;
 
     public:
+        using type_t = com_ptr;
+        using element_t = T;
+        using pointer_t = T *;
+
         /*!
-         * \brief Initializes this pointer as null.
+         * \brief Implicitly initializes this pointer as empty.
          */
-        com_ptr() noexcept : ptr_(nullptr) {
+        constexpr com_ptr() noexcept : ptr_(nullptr) {
             // Intentionally left blank.
         }
 
         /*!
-         * \brief Takes ownership of T, managing it. Does not call AddRef.
-         * \param ptr COM pointer that is T or derived of T.
+         * \brief Explicitly initializes this pointer as empty.
          */
-        explicit com_ptr(type_t* ptr) noexcept : ptr_(ptr) {
-            // intentionally left blank
-#ifdef _DEBUG
-            std::cout
-                    << std::format("Taking ownership of {}", typeid(type_t).name())
-                    << std::endl;
-#endif
+        explicit constexpr com_ptr(decltype(nullptr)) noexcept : ptr_(nullptr) {
+            // Intentionally left blank.
         }
 
-        template<typename D> requires std::is_base_of_v<T, D>
-        explicit com_ptr(D* ptr) noexcept : ptr_(ptr) {
-#ifdef _DEBUG
-            std::cout
-                    << std::format("Taking ownership of {}, downcasting from {}", typeid(T).name(), typeid(D).name())
-                    << std::endl;
-#endif
+        /*!
+         * \brief Takes ownership of U, managing it. Does not call AddRef.
+         * \param ptr COM pointer that is T or U derived of T.
+         */
+        template<typename U> requires std::is_base_of_v<T, U>
+        explicit constexpr com_ptr(U* ptr) noexcept : ptr_(ptr) {
+            // Intentionally left blank.
         }
 
         /*!
          * \brief Creates a copy of a COM pointer. Calls AddRef.
          * \param other The other COM pointer.
          */
-        com_ptr(const com_ptr& other) noexcept : ptr_(other.ptr_) {
+        com_ptr(const type_t& other) noexcept : ptr_(other.ptr_) {
             if (ptr_ != nullptr) {
                 ptr_->AddRef();
             }
         }
 
-        template<typename D> requires std::is_base_of_v<T, D>
-        explicit com_ptr(const com_ptr<D>& other) noexcept : ptr_(other.ptr_) {
+        template<typename U> requires std::is_base_of_v<T, U>
+        explicit com_ptr(const com_ptr<U>& other) noexcept : ptr_(other.ptr_) {
             if (ptr_ != nullptr) {
                 ptr_->AddRef();
             }
@@ -68,12 +74,12 @@ namespace mage {
          * \brief Move constructs a COM pointer from another COM point. Does not call AddRef.
          * \param other The COM pointer to be moved into this one.
          */
-        com_ptr(com_ptr&& other) noexcept : ptr_(other.ptr_) {
+        constexpr com_ptr(type_t&& other) noexcept : ptr_(other.ptr_) {
             other.ptr_ = nullptr;
         }
 
-        template<typename D> requires std::is_base_of_v<T, D>
-        explicit com_ptr(com_ptr&& other) noexcept : ptr_(other.ptr_) {
+        template<typename U> requires std::is_base_of_v<T, U>
+        explicit constexpr com_ptr(com_ptr<U>&& other) noexcept : ptr_(other.ptr_) {
             other.ptr_ = nullptr;
         }
 
@@ -83,12 +89,14 @@ namespace mage {
         ~com_ptr() noexcept {
             if (ptr_ != nullptr) {
                 ptr_->Release();
-#ifdef _DEBUG
-                std::cout
-                        << std::format("Release {}", typeid(type_t).name())
-                        << std::endl;
-#endif
             }
+        }
+
+        /*!
+         * \brief Checks whether this owns an object.
+         */
+        explicit operator bool() const noexcept {
+            return ptr_ != nullptr;
         }
 
         /*!
@@ -96,7 +104,7 @@ namespace mage {
          * \param other The COM pointer to be assigned to this one.
          * \return This COM pointer.
          */
-        com_ptr& operator=(const com_ptr& other) noexcept {
+        type_t& operator=(const type_t& other) noexcept {
             if (this != *other) {
                 if (ptr_ != nullptr) {
                     ptr_->Release();
@@ -114,7 +122,7 @@ namespace mage {
          * \param other The COM pointer to be move assigned.
          * \return This COM pointer.
          */
-        com_ptr& operator=(com_ptr&& other) noexcept {
+        type_t& operator=(type_t&& other) noexcept {
             if (this != *other) {
                 if (ptr_ != nullptr) {
                     ptr_->Release();
@@ -129,29 +137,44 @@ namespace mage {
          * \brief Provides direct access to the methods of this COM pointer.
          * \return The underlying pointer.
          */
-        constexpr auto operator->() const noexcept -> type_t* {
-            assert(ptr_ != nullptr);
+        constexpr auto operator->() const noexcept -> pointer_t {
+            return ptr_;
+        }
+
+        template<typename U> requires std::is_base_of_v<IUnknown, U>
+        auto query_interface(com_ptr<U>& out) const noexcept -> HRESULT {
+            if (out.ptr_ != nullptr) {
+                out.ptr_->Release();
+            }
+            return ptr_->QueryInterface(
+                __uuidof(U),
+                reinterpret_cast<void **>(out.get_address_of())
+            );
+        }
+
+        [[nodiscard]]
+        constexpr auto get() const noexcept -> pointer_t {
             return ptr_;
         }
 
         [[nodiscard]]
-        constexpr auto get() const noexcept -> type_t* {
-            return ptr_;
+        constexpr auto get_address_of() const noexcept -> pointer_t const* {
+            return &ptr_;
         }
 
         [[nodiscard]]
-        constexpr auto get() noexcept -> type_t* {
-            return ptr_;
-        }
-
-        [[nodiscard]]
-        constexpr auto get_address_of() const noexcept -> const void** {
-            return reinterpret_cast<const void **>(&ptr_);
-        }
-
-        [[nodiscard]]
-        constexpr auto get_address_of() noexcept -> void** {
-            return reinterpret_cast<void **>(&ptr_);
+        constexpr auto get_address_of() noexcept -> pointer_t* {
+            return &ptr_;
         }
     };
+
+    template<typename T> requires std::is_base_of_v<IUnknown, T>
+    bool operator==(const com_ptr<T>& a, decltype(nullptr)) {
+        return !a;
+    }
+
+    template<typename T> requires std::is_base_of_v<IUnknown, T>
+    bool operator==(decltype(nullptr), const com_ptr<T>& a) {
+        return !a;
+    }
 }
